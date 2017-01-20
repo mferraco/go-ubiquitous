@@ -1,25 +1,17 @@
 package com.example.mferraco.sunshine;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.os.Bundle;
+import android.graphics.Typeface;
 import android.support.wearable.watchface.CanvasWatchFaceService;
-import android.util.Log;
+import android.text.TextPaint;
 import android.view.SurfaceHolder;
 
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.DataEvent;
-import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.DataMap;
-import com.google.android.gms.wearable.DataMapItem;
-
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.TimeZone;
+import java.util.Locale;
 
 /**
  * Created by mferraco on 1/16/17.
@@ -29,111 +21,84 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
     @Override
     public Engine onCreateEngine() {
-        return new Engine();
+        return new SunshineWatchFaceEngine();
     }
 
-    private class Engine extends CanvasWatchFaceService.Engine implements DataApi.DataListener {
+    private class SunshineWatchFaceEngine extends Engine {
 
         Calendar mCalendar;
 
         Paint mBackgroundPaint;
+        TextPaint mTimeTextPaint;
 
-        private boolean mRegisteredTimeZoneReceiver;
+        float mXOffset;
+        float mYOffset;
 
-        final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mCalendar.setTimeZone(TimeZone.getDefault());
-                invalidate();
-            }
-        };
+        SimpleDateFormat timeFormat;
+
+        private final Typeface BOLD_TYPEFACE =
+                Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
 
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
-            // initialize watch face here
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(getColor(R.color.colorPrimary));
+
+            mTimeTextPaint = new TextPaint();
+            mTimeTextPaint.setColor(Color.WHITE);
+            mTimeTextPaint.setTypeface(BOLD_TYPEFACE);
+            mTimeTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.time_size));
+            mTimeTextPaint.setAntiAlias(true);
+
+            timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
             mCalendar = Calendar.getInstance();
         }
 
         @Override
-        public void onPropertiesChanged(Bundle properties) {
-            super.onPropertiesChanged(properties);
-            // get device features (burn-in, low-bit ambient)
-        }
-
-        @Override
         public void onTimeTick() {
             super.onTimeTick();
-
             invalidate();
-        }
-
-        @Override
-        public void onAmbientModeChanged(boolean inAmbientMode) {
-            super.onAmbientModeChanged(inAmbientMode);
-            // the wearable switched between modes
         }
 
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
             super.onDraw(canvas, bounds);
-            // draw watch face
 
+            /* Update the time */
+            long now = System.currentTimeMillis();
+            mCalendar.setTimeInMillis(now);
+
+            /* Set the background */
             canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
-        }
 
-        @Override
-        public void onVisibilityChanged(boolean visible) {
-            super.onVisibilityChanged(visible);
-            // the watch face becomes visible or invisible
 
-            if (visible) {
-                registerReceiver();
-                mCalendar.setTimeZone(TimeZone.getDefault());
-            } else {
-                unregisterReceiver();
+            /* Set Time */
+
+            // get hour
+            String hourString;
+            int hour = mCalendar.get(Calendar.HOUR);
+            if (hour == 0) {
+                hour = 12;
             }
-        }
+            hourString = String.valueOf(hour);
 
-        private void registerReceiver() {
-            if (mRegisteredTimeZoneReceiver) {
-                return;
-            }
+            // get minute
+            String minuteString;
+            int minute = mCalendar.get(Calendar.MINUTE);
+            minuteString = String.valueOf(minute);
 
-            mRegisteredTimeZoneReceiver = true;
-            IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
-            SunshineWatchFaceService.this.registerReceiver(mTimeZoneReceiver, filter);
-        }
+            String concatTime = hourString + ":" + minuteString;
 
-        private void unregisterReceiver() {
-            if (!mRegisteredTimeZoneReceiver) {
-                return;
-            }
+            Rect textBounds = new Rect();
+            mTimeTextPaint.getTextBounds(concatTime, 0, concatTime.length(), textBounds);
 
-            mRegisteredTimeZoneReceiver = false;
-            SunshineWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
-        }
+            int textX = Math.abs(bounds.centerX() - textBounds.centerX());
+            int textY = Math.abs(bounds.centerY() / 2 - textBounds.centerY());
 
-        @Override
-        public void onDataChanged(DataEventBuffer dataEventBuffer) {
-            DataMap dataMap;
-
-            for (DataEvent event : dataEventBuffer) {
-
-                // Check the data type
-                if (event.getType() == DataEvent.TYPE_CHANGED) {
-                    // Check the data path
-                    String path = event.getDataItem().getUri().getPath();
-                    if (path.equals("/weatherData")) {
-                    }
-                    dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
-                    Log.v("myTag", "DataMap received on watch: " + dataMap);
-                }
-            }
+            canvas.drawText(concatTime, textX, textY, mTimeTextPaint);
         }
     }
 }
