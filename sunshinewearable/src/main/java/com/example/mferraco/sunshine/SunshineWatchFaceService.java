@@ -30,11 +30,13 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
         Paint mBackgroundPaint;
         TextPaint mTimeTextPaint;
+        TextPaint mDateTextPaint;
 
         float mXOffset;
         float mYOffset;
 
         SimpleDateFormat timeFormat;
+        SimpleDateFormat dateFormat;
 
         private final Typeface BOLD_TYPEFACE =
                 Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
@@ -46,13 +48,20 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(getColor(R.color.colorPrimary));
 
+            // time text configuration
             mTimeTextPaint = new TextPaint();
             mTimeTextPaint.setColor(Color.WHITE);
             mTimeTextPaint.setTypeface(BOLD_TYPEFACE);
             mTimeTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.time_size));
             mTimeTextPaint.setAntiAlias(true);
-
             timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+            // date text configuration
+            mDateTextPaint = new TextPaint();
+            mDateTextPaint.setColor(Color.WHITE);
+            mDateTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.date_size));
+            mDateTextPaint.setAntiAlias(true);
+            dateFormat = new SimpleDateFormat("EEEE, MMM. d yyyy", Locale.getDefault());
 
             mCalendar = Calendar.getInstance();
         }
@@ -67,38 +76,34 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         public void onDraw(Canvas canvas, Rect bounds) {
             super.onDraw(canvas, bounds);
 
-            /* Update the time */
+            /* ===== Update the time ===== */
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
-            /* Set the background */
+            /* ===== Set the background ===== */
             canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
 
-
-            /* Set Time */
-
-            // get hour
-            String hourString;
-            int hour = mCalendar.get(Calendar.HOUR);
-            if (hour == 0) {
-                hour = 12;
-            }
-            hourString = String.valueOf(hour);
-
-            // get minute
-            String minuteString;
-            int minute = mCalendar.get(Calendar.MINUTE);
-            minuteString = String.valueOf(minute);
-
-            String concatTime = hourString + ":" + minuteString;
-
+            /* ===== Set & Draw Time ===== */
+            String timeString = timeFormat.format(now);
             Rect textBounds = new Rect();
-            mTimeTextPaint.getTextBounds(concatTime, 0, concatTime.length(), textBounds);
+            mTimeTextPaint.getTextBounds(timeString, 0, timeString.length(), textBounds);
 
             int textX = Math.abs(bounds.centerX() - textBounds.centerX());
             int textY = Math.abs(bounds.centerY() / 2 - textBounds.centerY());
 
-            canvas.drawText(concatTime, textX, textY, mTimeTextPaint);
+            canvas.drawText(timeString, textX, textY, mTimeTextPaint);
+
+            /* ===== Set & Draw Date ===== */
+            String dateString = dateFormat.format(now);
+            Rect dateTextBounds = new Rect();
+            mDateTextPaint.getTextBounds(dateString, 0, dateString.length(), dateTextBounds);
+            int dateTextX = Math.abs(bounds.centerX() - dateTextBounds.centerX());
+            int dateTextY = Math.abs(textY + dateTextBounds.height() + 10);
+
+            canvas.drawText(dateString, dateTextX, dateTextY, mDateTextPaint);
+
+            /* ===== Set & Draw the Weather ===== */
+
         }
     }
 }
