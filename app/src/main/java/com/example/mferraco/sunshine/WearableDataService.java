@@ -1,6 +1,9 @@
 package com.example.mferraco.sunshine;
 
+import android.app.IntentService;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,21 +20,39 @@ import com.google.android.gms.wearable.Wearable;
  * Class responsible for sending data to the wearable when necessary
  */
 
-public class WearableDataManager implements GoogleApiClient.ConnectionCallbacks,
+public class WearableDataService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient mGoogleApiClient;
 
-    private String mPath;
+    private final String mPath = "/weatherData";
 
     private DataMap mDataMap;
 
     private Context mContext;
 
-    public WearableDataManager(String path, DataMap dataMap, Context context) {
-        mPath = path;
+    private Cursor mCursor;
+
+    private int mMax;
+    private int mMin;
+    private int mWeatherId;
+
+    public WearableDataService(Context context, DataMap dataMap) {
         mDataMap = dataMap;
         mContext = context;
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+
+
+        mGoogleApiClient = new GoogleApiClient.Builder(WearableDataService.this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApiIfAvailable(Wearable.API)
+                .build();
+
+        mGoogleApiClient.connect();
     }
 
     public void sendDataToWearable() {
