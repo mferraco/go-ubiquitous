@@ -14,6 +14,8 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 public class ListenerService extends WearableListenerService {
 
+    // TODO: remove this class probably
+
     private static final String WEARABLE_DATA_PATH = "/weatherData";
 
     @Override

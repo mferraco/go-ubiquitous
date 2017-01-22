@@ -81,5 +81,9 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".WearableDataService"
+            android:exported="false" />
+
     </application>
 </manifest>

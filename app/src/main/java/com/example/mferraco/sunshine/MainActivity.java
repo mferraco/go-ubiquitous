@@ -35,9 +35,6 @@ import android.widget.ProgressBar;
 import com.example.mferraco.sunshine.data.SunshinePreferences;
 import com.example.mferraco.sunshine.data.WeatherContract;
 import com.example.mferraco.sunshine.sync.SunshineSyncUtils;
-import com.google.android.gms.wearable.DataMap;
-
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
@@ -87,12 +84,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
         getSupportActionBar().setElevation(0f);
-
-        /* Send new data to the connected wearable */
-        DataMap data = new DataMap();
-        data.putString("keys1", "values3" + new Date());
-        WearableDataManager manager = new WearableDataManager("/weatherData", data, this);
-        manager.sendDataToWearable(); // add parameter that includes data to send...
 
         /*
          * Using findViewById, we get a reference to our RecyclerView from xml. This allows us to
@@ -242,15 +233,10 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-
         mForecastAdapter.swapCursor(data);
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         mRecyclerView.smoothScrollToPosition(mPosition);
         if (data.getCount() != 0) showWeatherDataView();
-
-
-        //TODO: sync data to the wearable because it has loaded
     }
 
     /**

@@ -18,18 +18,17 @@ package com.example.mferraco.sunshine.sync;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.text.format.DateUtils;
 
-import com.example.mferraco.sunshine.WearableDataManager;
+import com.example.mferraco.sunshine.WearableDataService;
 import com.example.mferraco.sunshine.data.SunshinePreferences;
 import com.example.mferraco.sunshine.data.WeatherContract;
 import com.example.mferraco.sunshine.utilities.NetworkUtils;
 import com.example.mferraco.sunshine.utilities.NotificationUtils;
 import com.example.mferraco.sunshine.utilities.OpenWeatherJsonUtils;
-import com.google.android.gms.wearable.DataMap;
 
 import java.net.URL;
-import java.util.Date;
 
 public class SunshineSyncTask {
 
@@ -110,10 +109,8 @@ public class SunshineSyncTask {
             /* If the code reaches this point, we have successfully performed our sync */
 
                 /* Send new data to the connected wearable */
-                DataMap data = new DataMap();
-                data.putString("keys1", "values3" + new Date());
-                WearableDataManager manager = new WearableDataManager("/weatherData", data, context);
-                manager.sendDataToWearable(); // add parameter that includes data to send...
+                Intent serviceIntent = new Intent(context, WearableDataService.class);
+                context.startService(serviceIntent);
             }
 
         } catch (Exception e) {
