@@ -188,9 +188,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
             int weatherImageX = bounds.centerX() - lowTextBounds.centerX() - 75;
             int weatherImageY = Math.abs(dateTextY + lowTextBounds.height());
-            mWeatherImage = BitmapFactory.decodeResource(mResources, R.drawable.ic_clear);
+            mWeatherImage = BitmapFactory.decodeResource(mResources, WearableWeatherUtils.getWeatherResource(mWeatherId));
             canvas.drawBitmap(mWeatherImage, weatherImageX, weatherImageY, null); // Or use a Paint if you need it
-
         }
 
         @Override
